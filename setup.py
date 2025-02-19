@@ -4,11 +4,11 @@ setup(
     name="src",
     version="0.1.0",
     description=(
-        "Deep Learning training pipeline template"
+        "Polyp segmentation training pipeline"
         "based on pytorch_lightning and hydra"
     ),
-    author="Your Name",
-    author_email="Your Email",
+    author="Quy-An Dao",
+    author_email="daoquyan26122003@gmail.com",
     install_requires=["pytorch-lightning", "hydra-core"],
     packages=find_packages(exclude=["tests"]),
 )
