@@ -1,3 +1,4 @@
+import os
 from typing import List, Tuple
 
 import hydra
@@ -42,6 +43,7 @@ from src import utils
 # https://github.com/ashleve/pyrootutils
 # --------------------------------------------------------------------------- #
 
+os.environ["TORCH_FORCE_NO_WEIGHTS_ONLY_LOAD"] = "1"
 
 root = pyrootutils.setup_root(
     search_from=__file__,
