@@ -28,7 +28,9 @@ class TransformsWrapper:
             augmentations.append(augmentation)
         self.augmentations = albumentations.Compose(augmentations)
 
-    def __call__(self, image: Any, **kwargs: Any) -> Any:
+    def __call__(
+        self, image: Any, mask: Any | None = None, **kwargs: Any
+    ) -> Any:
         """Apply TransformsWrapper module.
 
         Args:
@@ -41,4 +43,11 @@ class TransformsWrapper:
 
         if isinstance(image, Image.Image):
             image = np.asarray(image)
-        return self.augmentations(image=image, **kwargs)
+        if mask is not None and isinstance(mask, Image.Image):
+            mask = np.asarray(mask)
+
+        if mask is not None:
+            return self.augmentations(image=image, mask=mask, **kwargs)
+        else:
+            image = self.augmentations(image=image, **kwargs)["image"]
+            return {"image": image, "mask": None}
