@@ -13,7 +13,7 @@ class NeoPolypDataModule(SingleDataModule):
     def __init__(
         self, datasets: DictConfig, loaders: DictConfig, transforms: DictConfig
     ) -> None:
-        super.__init__(
+        super().__init__(
             datasets=datasets, loaders=loaders, transforms=transforms
         )
 
