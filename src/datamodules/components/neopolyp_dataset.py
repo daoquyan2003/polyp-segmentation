@@ -119,21 +119,17 @@ class NeoPolypDataset(Dataset):
                 if result["image"].ndim == 3 and result["image"].shape[2] == 3:
                     return torch.from_numpy(result["image"]).permute(
                         2, 0, 1
-                    ), torch.from_numpy(result["mask"]).unsqueeze(0).to(
-                        torch.float32
-                    )
+                    ), torch.from_numpy(result["mask"]).to(torch.float32)
                 else:
                     return torch.from_numpy(result["image"]), torch.from_numpy(
                         result["mask"]
-                    ).unsqueeze(0).to(torch.float32)
+                    ).to(torch.float32)
             else:
-                return result["image"], result["mask"].unsqueeze(0).to(
-                    torch.float32
-                )
+                return result["image"], result["mask"].to(torch.float32)
         else:
             return torch.from_numpy(image).permute(2, 0, 1), torch.from_numpy(
                 mask
-            ).unsqueeze(0).to(torch.float32)
+            ).to(torch.float32)
 
     def __len__(self) -> int:
         return len(self.image_paths)
@@ -187,6 +183,7 @@ class NeoPolypDataset(Dataset):
 
 
 if __name__ == "__main__":
+    NeoPolypDataset("./data").prepare_data()
     dataset = NeoPolypDataset("./data/")
     img, mask = dataset[0]
     print(img.shape, mask.shape)

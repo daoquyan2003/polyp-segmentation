@@ -1,7 +1,8 @@
 model:
-  _target_: src.modules.models.module.BaseModule
-  model_name: segmentation_models_pytorch/Unet
-  model_repo: null
+  _target_: src.modules.models.unet_model.UNet
+  n_channels: 3
+  n_classes: 3
+  bilinear: false
 
 loss:
   _target_: "torch.nn.CrossEntropyLoss"
@@ -11,5 +12,7 @@ metrics:
     _target_: "torchmetrics.JaccardIndex"
     task: "multiclass"
     num_classes: 3
+    average: "micro"
+    ignore_index: 0
   valid_best:
     _target_: "torchmetrics.MaxMetric"

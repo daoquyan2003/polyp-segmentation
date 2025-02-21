@@ -1,0 +1,6 @@
+wandb_callback:
+  _target_: src.utils.callback.wandb.WandbCallback
+  image_path: ${paths.data_dir}/train/train/0a22abd004c33abf3ae2136cd9dd77ae.jpeg
+  # data_path: ${paths.data_dir}
+  img_size: 512
+  n_images_to_log: 5

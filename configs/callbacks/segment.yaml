@@ -1,4 +1,8 @@
 # this config file is used for running the template default tests
+defaults:
+  - wandb.yaml
+  - wandb_callback.yaml
+  - _self_
 
 model_checkpoint:
   _target_: pytorch_lightning.callbacks.ModelCheckpoint

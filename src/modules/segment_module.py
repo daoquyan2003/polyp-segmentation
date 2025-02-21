@@ -63,9 +63,9 @@ class SingleSegmentationLitModule(BaseLitModule):
         self.test_metric = main_metric.clone()
         self.test_add_metrics = add_metrics.clone(postfix="/test")
 
-        self.train_dice = Dice(num_classes=3)
-        self.val_dice = Dice(num_classes=3)
-        self.test_dice = Dice(num_classes=3)
+        self.train_dice = Dice(num_classes=3, average="micro", ignore_index=0)
+        self.val_dice = Dice(num_classes=3, average="micro", ignore_index=0)
+        self.test_dice = Dice(num_classes=3, average="micro", ignore_index=0)
         self.val_dice_best = valid_metric_best.clone()
 
         self.train_loss = MeanMetric()
@@ -76,9 +76,11 @@ class SingleSegmentationLitModule(BaseLitModule):
 
     def model_step(self, batch: Any, *args: Any, **kwargs: Any) -> Any:
         images, masks = batch[0], batch[1]
+        masks = masks.long()
         logits = self.forward(images)
         loss = self.loss(logits, masks)
-        preds = torch.argmax(logits, dim=1).unsqueeze(1)
+        softmax = nn.Softmax(dim=1)
+        preds = torch.argmax(softmax(logits), dim=1)
         return loss, preds, masks
 
     def on_train_start(self) -> None:
@@ -159,7 +161,7 @@ class SingleSegmentationLitModule(BaseLitModule):
         self.valid_add_metrics(preds, targets)
         self.log_dict(self.valid_add_metrics, **self.logging_params)
 
-        return {"loss": loss}
+        return {"loss": loss, "preds": preds, "targets": targets}
 
     def validation_epoch_end(self, outputs: List[Any]) -> None:
         valid_metric = self.valid_metric.compute()  # get current valid metric
@@ -181,20 +183,6 @@ class SingleSegmentationLitModule(BaseLitModule):
         )
 
     def test_step(self, batch: Any, batch_idx: int) -> Any:
-        # loss, preds, targets = self.model_step(batch, batch_idx)
-        # self.log(
-        #     f"{self.loss.__class__.__name__}/test", loss, **self.logging_params
-        # )
-
-        # self.test_metric(preds, targets)
-        # self.log(
-        #     f"{self.test_metric.__class__.__name__}/test",
-        #     self.test_metric,
-        #     **self.logging_params,
-        # )
-
-        # self.test_add_metrics(preds, targets)
-        # self.log_dict(self.test_add_metrics, **self.logging_params)
         loss, preds, targets = self.model_step(batch, batch_idx)
 
         self.test_loss(loss)
@@ -220,7 +208,7 @@ class SingleSegmentationLitModule(BaseLitModule):
 
         self.test_add_metrics(preds, targets)
         self.log_dict(self.test_add_metrics, **self.logging_params)
-        return {"loss": loss}
+        return {"loss": loss, "preds": preds, "targets": targets}
 
     def test_epoch_end(self, outputs: List[Any]) -> None:
         pass
@@ -230,6 +218,7 @@ class SingleSegmentationLitModule(BaseLitModule):
     ) -> Any:
         images, masks = batch[0], batch[1]
         logits = self.forward(images)
-        preds = torch.argmax(logits, dim=1).unsqueeze(1)
+        softmax = nn.Softmax(dim=1)
+        preds = torch.argmax(softmax(logits), dim=1)
         outputs = {"logits": logits, "preds": preds, "targets": masks}
         return outputs

@@ -7,7 +7,7 @@ defaults:
   - datamodule: neopolyp.yaml
   - module: segment.yaml
   - callbacks: segment.yaml
-  - logger: null # set logger here or use command line (e.g. `python train.py logger=tensorboard`)
+  - logger: wandb # set logger here or use command line (e.g. `python train.py logger=tensorboard`)
   - trainer: default.yaml
   - paths: default.yaml
   - extras: default.yaml
@@ -52,4 +52,4 @@ ckpt_path: null
 seed: 42
 
 # name of the run, accessed by loggers
-name: "polyp-segmentation-v0.1.0"
+# name: "polyp-segmentation-v0.1.0"
