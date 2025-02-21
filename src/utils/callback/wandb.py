@@ -210,10 +210,10 @@ class WandbCallback(Callback):
 
         preds = outputs["preds"]
         targets = outputs["targets"]
-        images, ys, image_paths = batch
+        images, ys = batch
 
         images = denormalize(images)
-        for img, pred, target, id in zip(images, preds, targets, image_paths):
+        for img, pred, target in zip(images, preds, targets):
             if self.n_images_to_log <= 0:
                 break
 
@@ -231,7 +231,7 @@ class WandbCallback(Callback):
             logger.log_image(
                 key="Sample",
                 images=[log_img, log_pred, log_target],
-                caption=[id + "-Real", id + "-Predict", id + "-GroundTruth"],
+                caption=["-Real", "-Predict", "-GroundTruth"],
             )
 
             self.n_images_to_log -= 1

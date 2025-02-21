@@ -1,6 +1,6 @@
 # this config file is used for running the template default tests
 defaults:
-  - wandb.yaml
+  # - wandb.yaml
   - wandb_callback.yaml
   - _self_
 
