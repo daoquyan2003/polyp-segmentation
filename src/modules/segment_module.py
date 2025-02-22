@@ -4,7 +4,7 @@ import hydra
 import torch
 from omegaconf import DictConfig
 from torch import nn
-from torchmetrics import Dice, MeanMetric
+from torchmetrics import Dice, JaccardIndex, MeanMetric
 
 from src.modules.components.lit_module import BaseLitModule
 from src.modules.losses import load_loss
@@ -68,6 +68,24 @@ class SingleSegmentationLitModule(BaseLitModule):
         self.test_dice = Dice(num_classes=3, average="macro")
         self.val_dice_best = valid_metric_best.clone()
 
+        self.train_jaccard_per_class = JaccardIndex(
+            task="multiclass", num_classes=3, average="none"
+        )
+        self.val_jaccard_per_class = JaccardIndex(
+            task="multiclass", num_classes=3, average="none"
+        )
+        self.test_jaccard_per_class = JaccardIndex(
+            task="multiclass", num_classes=3, average="none"
+        )
+        self.val_jaccard_neoplastic_best = valid_metric_best.clone()
+        self.val_jaccard_nonneoplastic_best = valid_metric_best.clone()
+
+        self.train_dice_per_class = Dice(num_classes=3, average="none")
+        self.val_dice_per_class = Dice(num_classes=3, average="none")
+        self.test_dice_per_class = Dice(num_classes=3, average="none")
+        self.val_dice_neoplastic_best = valid_metric_best.clone()
+        self.val_dice_nonneoplastic_best = valid_metric_best.clone()
+
         self.train_loss = MeanMetric()
         self.val_loss = MeanMetric()
         self.test_loss = MeanMetric()
@@ -90,6 +108,10 @@ class SingleSegmentationLitModule(BaseLitModule):
         self.valid_metric_best.reset()
         self.val_loss.reset()
         self.val_dice_best.reset()
+        self.val_jaccard_neoplastic_best.reset()
+        self.val_jaccard_nonneoplastic_best.reset()
+        self.val_dice_neoplastic_best.reset()
+        self.val_dice_nonneoplastic_best.reset()
 
     def training_step(self, batch: Any, batch_idx: int) -> Any:
         loss, preds, targets = self.model_step(batch, batch_idx)
@@ -112,6 +134,30 @@ class SingleSegmentationLitModule(BaseLitModule):
         self.log(
             f"{self.train_dice.__class__.__name__}/train",
             self.train_dice,
+            **self.logging_params,
+        )
+
+        self.train_jaccard_per_class(preds, targets.int())
+        self.log(
+            "Neoplastic_Jaccard/train",
+            self.train_jaccard_per_class[1],
+            **self.logging_params,
+        )
+        self.log(
+            "Non-neoplastic_Jaccard/train",
+            self.train_jaccard_per_class[2],
+            **self.logging_params,
+        )
+
+        self.train_dice_per_class(preds, targets.int())
+        self.log(
+            "Neoplastic_Dice/train",
+            self.train_dice_per_class[1],
+            **self.logging_params,
+        )
+        self.log(
+            "Non-neoplastic_Dice/train",
+            self.train_dice_per_class[2],
             **self.logging_params,
         )
 
@@ -158,6 +204,36 @@ class SingleSegmentationLitModule(BaseLitModule):
             **self.logging_params,
         )
 
+        self.val_jaccard_per_class(preds, targets.int())
+        self.log(
+            "Neoplastic_Jaccard/val",
+            self.val_jaccard_per_class[1],
+            **self.logging_params,
+        )
+        self.val_jaccard_neoplastic_best.update(self.val_jaccard_per_class[1])
+        self.log(
+            "Non-neoplastic_Jaccard/val",
+            self.val_jaccard_per_class[2],
+            **self.logging_params,
+        )
+        self.val_jaccard_nonneoplastic_best.update(
+            self.val_jaccard_per_class[2]
+        )
+
+        self.val_dice_per_class(preds, targets.int())
+        self.log(
+            "Neoplastic_Dice/val",
+            self.val_dice_per_class[1],
+            **self.logging_params,
+        )
+        self.val_dice_neoplastic_best.update(self.val_dice_per_class[1])
+        self.log(
+            "Non-neoplastic_Dice/val",
+            self.val_dice_per_class[2],
+            **self.logging_params,
+        )
+        self.val_dice_nonneoplastic_best.update(self.val_dice_per_class[2])
+
         self.valid_add_metrics(preds, targets)
         self.log_dict(self.valid_add_metrics, **self.logging_params)
 
@@ -181,6 +257,30 @@ class SingleSegmentationLitModule(BaseLitModule):
             self.val_dice_best.compute(),
             **self.logging_params,
         )
+        self.log(
+            "Neoplastic_Jaccard/valid_best",
+            self.val_jaccard_neoplastic_best.compute(),
+            **self.logging_params,
+        )
+        self.log(
+            "Non-neoplastic_Jaccard/valid_best",
+            self.val_jaccard_nonneoplastic_best.compute(),
+            **self.logging_params,
+        )
+        self.log(
+            "Neoplastic_Dice/valid_best",
+            self.val_dice_neoplastic_best.compute(),
+            **self.logging_params,
+        )
+        self.log(
+            "Non-neoplastic_Dice/valid_best",
+            self.val_dice_nonneoplastic_best.compute(),
+            **self.logging_params,
+        )
+        self.val_jaccard_neoplastic_best.reset()
+        self.val_jaccard_nonneoplastic_best.reset()
+        self.val_dice_neoplastic_best.reset()
+        self.val_dice_nonneoplastic_best.reset()
 
     def test_step(self, batch: Any, batch_idx: int) -> Any:
         loss, preds, targets = self.model_step(batch, batch_idx)
@@ -203,6 +303,30 @@ class SingleSegmentationLitModule(BaseLitModule):
         self.log(
             f"{self.test_dice.__class__.__name__}/test",
             self.test_dice,
+            **self.logging_params,
+        )
+
+        self.test_jaccard_per_class(preds, targets.int())
+        self.log(
+            "Neoplastic_Jaccard/test",
+            self.test_jaccard_per_class[1],
+            **self.logging_params,
+        )
+        self.log(
+            "Non-neoplastic_Jaccard/test",
+            self.test_jaccard_per_class[2],
+            **self.logging_params,
+        )
+
+        self.test_dice_per_class(preds, targets.int())
+        self.log(
+            "Neoplastic_Dice/test",
+            self.test_dice_per_class[1],
+            **self.logging_params,
+        )
+        self.log(
+            "Non-neoplastic_Dice/test",
+            self.test_dice_per_class[2],
             **self.logging_params,
         )
 
