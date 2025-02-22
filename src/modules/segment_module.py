@@ -231,9 +231,18 @@ class SingleSegmentationLitModule(BaseLitModule):
             self.val_jaccard_nonneoplastic_best.compute(),
             **self.logging_params,
         )
-
+        current_max_jaccard_neoplastic = (
+            self.val_jaccard_neoplastic_best.compute()
+        )
+        current_max_jaccard_nonneoplastic = (
+            self.val_jaccard_nonneoplastic_best.compute()
+        )
         self.val_jaccard_neoplastic_best.reset()
         self.val_jaccard_nonneoplastic_best.reset()
+        self.val_jaccard_neoplastic_best.update(current_max_jaccard_neoplastic)
+        self.val_jaccard_nonneoplastic_best.update(
+            current_max_jaccard_nonneoplastic
+        )
 
     def test_step(self, batch: Any, batch_idx: int) -> Any:
         loss, preds, targets = self.model_step(batch, batch_idx)
