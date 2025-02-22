@@ -8,7 +8,7 @@ IMG_STD = [0.229, 0.224, 0.225]
 
 
 def mask_overlay(
-    image, mask, colors={1: (0, 255, 0), 2: (0, 0, 255)}, alpha=0.5
+    image, mask, colors={1: (255, 0, 0), 2: (0, 255, 0)}, alpha=0.5
 ):
     """Overlay a segmentation mask on an image with transparency.
 

@@ -63,9 +63,9 @@ class SingleSegmentationLitModule(BaseLitModule):
         self.test_metric = main_metric.clone()
         self.test_add_metrics = add_metrics.clone(postfix="/test")
 
-        self.train_dice = Dice(num_classes=3, average="macro", ignore_index=0)
-        self.val_dice = Dice(num_classes=3, average="macro", ignore_index=0)
-        self.test_dice = Dice(num_classes=3, average="macro", ignore_index=0)
+        self.train_dice = Dice(num_classes=3, average="macro")
+        self.val_dice = Dice(num_classes=3, average="macro")
+        self.test_dice = Dice(num_classes=3, average="macro")
         self.val_dice_best = valid_metric_best.clone()
 
         self.train_loss = MeanMetric()
