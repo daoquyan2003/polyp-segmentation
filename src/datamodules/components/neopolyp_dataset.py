@@ -4,7 +4,7 @@ import json
 import os
 import zipfile
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any, Callable, Literal
 
 import cv2
 import numpy as np
@@ -27,10 +27,14 @@ class NeoPolypDataset(Dataset):
         data_dir: str,
         transforms: Callable | None = None,
         read_mode: str = "pillow",
+        task: Literal[
+            "polyp-segmentation", "neoplasm-detection"
+        ] = "polyp-segmentation",
     ) -> None:
         self.data_dir = data_dir
         self.transforms = transforms
         self.read_mode = read_mode
+        self.task = task
 
         image_dir = os.path.join(self.data_dir, "train", "train")
         mask_dir = os.path.join(self.data_dir, "train_gt", "train_gt")
@@ -96,8 +100,11 @@ class NeoPolypDataset(Dataset):
             raise NotImplementedError("read_mode must be `pillow` or `cv2`.")
         mask = cv2.cvtColor(mask, cv2.COLOR_RGB2GRAY)
         processed_mask = np.zeros_like(mask)  # Default to 0
-        processed_mask[(mask >= 50) & (mask <= 100)] = 1
-        processed_mask[mask > 100] = 2
+        if self.task == "polyp-segmentation":
+            processed_mask[mask > 0] = 1
+        else:
+            processed_mask[(mask >= 50) & (mask <= 100)] = 1
+            processed_mask[mask > 100] = 2
 
         return processed_mask
 

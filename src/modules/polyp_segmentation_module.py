@@ -4,14 +4,14 @@ import hydra
 import torch
 from omegaconf import DictConfig
 from torch import nn
-from torchmetrics import Dice, JaccardIndex, MeanMetric
+from torchmetrics import Dice, MeanMetric
 
 from src.modules.components.lit_module import BaseLitModule
 from src.modules.losses import load_loss
 from src.modules.metrics import load_metrics
 
 
-class SingleSegmentationLitModule(BaseLitModule):
+class PolypSegmentationLitModule(BaseLitModule):
     """Example of LightningModule for segmentation.
 
     A LightningModule organizes your PyTorch code into 6 sections:
@@ -63,22 +63,10 @@ class SingleSegmentationLitModule(BaseLitModule):
         self.test_metric = main_metric.clone()
         self.test_add_metrics = add_metrics.clone(postfix="/test")
 
-        self.train_dice = Dice(num_classes=3, average="macro")
-        self.val_dice = Dice(num_classes=3, average="macro")
-        self.test_dice = Dice(num_classes=3, average="macro")
+        self.train_dice = Dice(num_classes=2, average="macro")
+        self.val_dice = Dice(num_classes=2, average="macro")
+        self.test_dice = Dice(num_classes=2, average="macro")
         self.val_dice_best = valid_metric_best.clone()
-
-        self.train_jaccard_per_class = JaccardIndex(
-            task="multiclass", num_classes=3, average="none"
-        )
-        self.val_jaccard_per_class = JaccardIndex(
-            task="multiclass", num_classes=3, average="none"
-        )
-        self.test_jaccard_per_class = JaccardIndex(
-            task="multiclass", num_classes=3, average="none"
-        )
-        self.val_jaccard_neoplastic_best = valid_metric_best.clone()
-        self.val_jaccard_nonneoplastic_best = valid_metric_best.clone()
 
         self.train_loss = MeanMetric()
         self.val_loss = MeanMetric()
@@ -91,8 +79,8 @@ class SingleSegmentationLitModule(BaseLitModule):
         masks = masks.long()
         logits = self.forward(images)
         loss = self.loss(logits, masks)
-        softmax = nn.Softmax(dim=1)
-        preds = torch.argmax(softmax(logits), dim=1)
+        probs = torch.sigmoid(logits)
+        preds = (probs > 0.5).long().squeeze(1)
         return loss, preds, masks
 
     def on_train_start(self) -> None:
@@ -102,8 +90,6 @@ class SingleSegmentationLitModule(BaseLitModule):
         self.valid_metric_best.reset()
         self.val_loss.reset()
         self.val_dice_best.reset()
-        self.val_jaccard_neoplastic_best.reset()
-        self.val_jaccard_nonneoplastic_best.reset()
 
     def training_step(self, batch: Any, batch_idx: int) -> Any:
         loss, preds, targets = self.model_step(batch, batch_idx)
@@ -126,18 +112,6 @@ class SingleSegmentationLitModule(BaseLitModule):
         self.log(
             f"{self.train_dice.__class__.__name__}/train",
             self.train_dice,
-            **self.logging_params,
-        )
-
-        jaccard_per_class = self.train_jaccard_per_class(preds, targets.int())
-        self.log(
-            f"{self.train_jaccard_per_class.__class__.__name__}_neoplastic/train",
-            jaccard_per_class[1],
-            **self.logging_params,
-        )
-        self.log(
-            f"{self.train_jaccard_per_class.__class__.__name__}_non-neoplastic/train",
-            jaccard_per_class[2],
             **self.logging_params,
         )
 
@@ -184,20 +158,6 @@ class SingleSegmentationLitModule(BaseLitModule):
             **self.logging_params,
         )
 
-        jaccard_per_class = self.val_jaccard_per_class(preds, targets.int())
-        self.log(
-            f"{self.val_jaccard_per_class.__class__.__name__}_neoplastic/val",
-            jaccard_per_class[1],
-            **self.logging_params,
-        )
-        self.val_jaccard_neoplastic_best.update(jaccard_per_class[1])
-        self.log(
-            f"{self.val_jaccard_per_class.__class__.__name__}_non-neoplastic/val",
-            jaccard_per_class[2],
-            **self.logging_params,
-        )
-        self.val_jaccard_nonneoplastic_best.update(jaccard_per_class[2])
-
         self.valid_add_metrics(preds, targets)
         self.log_dict(self.valid_add_metrics, **self.logging_params)
 
@@ -220,28 +180,6 @@ class SingleSegmentationLitModule(BaseLitModule):
             f"{self.val_dice.__class__.__name__}/valid_best",
             self.val_dice_best.compute(),
             **self.logging_params,
-        )
-        self.log(
-            f"{self.val_jaccard_per_class.__class__.__name__}_neoplastic/valid_best",
-            self.val_jaccard_neoplastic_best.compute(),
-            **self.logging_params,
-        )
-        self.log(
-            f"{self.val_jaccard_per_class.__class__.__name__}_non-neoplastic/valid_best",
-            self.val_jaccard_nonneoplastic_best.compute(),
-            **self.logging_params,
-        )
-        current_max_jaccard_neoplastic = (
-            self.val_jaccard_neoplastic_best.compute()
-        )
-        current_max_jaccard_nonneoplastic = (
-            self.val_jaccard_nonneoplastic_best.compute()
-        )
-        self.val_jaccard_neoplastic_best.reset()
-        self.val_jaccard_nonneoplastic_best.reset()
-        self.val_jaccard_neoplastic_best.update(current_max_jaccard_neoplastic)
-        self.val_jaccard_nonneoplastic_best.update(
-            current_max_jaccard_nonneoplastic
         )
 
     def test_step(self, batch: Any, batch_idx: int) -> Any:
@@ -268,18 +206,6 @@ class SingleSegmentationLitModule(BaseLitModule):
             **self.logging_params,
         )
 
-        jaccard_per_class = self.test_jaccard_per_class(preds, targets.int())
-        self.log(
-            f"{self.test_jaccard_per_class.__class__.__name__}_neoplastic/test",
-            jaccard_per_class[1],
-            **self.logging_params,
-        )
-        self.log(
-            f"{self.test_jaccard_per_class.__class__.__name__}_non-neoplastic/test",
-            jaccard_per_class[2],
-            **self.logging_params,
-        )
-
         self.test_add_metrics(preds, targets)
         self.log_dict(self.test_add_metrics, **self.logging_params)
         return {"loss": loss, "preds": preds, "targets": targets}
@@ -292,7 +218,7 @@ class SingleSegmentationLitModule(BaseLitModule):
     ) -> Any:
         images, masks = batch[0], batch[1]
         logits = self.forward(images)
-        softmax = nn.Softmax(dim=1)
-        preds = torch.argmax(softmax(logits), dim=1)
+        probs = torch.sigmoid(logits)
+        preds = (probs > 0.5).long().squeeze(1)
         outputs = {"logits": logits, "preds": preds, "targets": masks}
         return outputs

@@ -19,6 +19,8 @@ class NeoPolypDataModule(SingleDataModule):
 
     @property
     def num_classes(self) -> int:
+        if self.cfg_datasets.get("task") == "polyp-segmentation":
+            return 2
         return 3
 
     def prepare_data(self) -> None:
@@ -39,11 +41,13 @@ class NeoPolypDataModule(SingleDataModule):
             train_dataset = NeoPolypDataset(
                 self.cfg_datasets.get("data_dir"),
                 transforms=transforms_train,
+                task=self.cfg_datasets.get("task"),
             )
 
             test_dataset = NeoPolypDataset(
                 self.cfg_datasets.get("data_dir"),
                 transforms=transforms_test,
+                task=self.cfg_datasets.get("task"),
             )
 
             seed = self.cfg_datasets.get("seed")

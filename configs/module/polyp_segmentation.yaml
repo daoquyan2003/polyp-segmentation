@@ -1,4 +1,4 @@
-_target_: src.modules.segment_module.SingleSegmentationLitModule
+_target_: src.modules.polyp_segmentation_module.PolypSegmentationLitModule
 
 # this config file is used for running the template default tests
 
@@ -11,7 +11,7 @@ _target_: src.modules.segment_module.SingleSegmentationLitModule
 
 defaults:
   - _self_
-  - network: unet.yaml
+  - network: unet_polyp.yaml
 
 optimizer:
   _target_: torch.optim.Adam

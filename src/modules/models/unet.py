@@ -77,3 +77,12 @@ class unet_model(nn.Module):
         x = self.conv8(x)
         x = self.final_layer(x)
         return x
+
+
+if __name__ == "__main__":
+    model = unet_model(out_channels=1)
+    x = torch.randn(2, 3, 256, 256)
+    y = model(x)
+    probs = torch.sigmoid(y)
+    preds = (probs > 0.5).long().squeeze(1)
+    print(preds.shape)
