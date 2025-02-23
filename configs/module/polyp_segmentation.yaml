@@ -11,7 +11,7 @@ _target_: src.modules.polyp_segmentation_module.PolypSegmentationLitModule
 
 defaults:
   - _self_
-  - network: unet_polyp.yaml
+  - network: unet34_polyp.yaml
 
 optimizer:
   _target_: torch.optim.Adam

@@ -11,7 +11,7 @@ _target_: src.modules.neoplasm_detection_module.NeoplasmDetectionLitModule
 
 defaults:
   - _self_
-  - network: unet_neoplasm.yaml
+  - network: unet34_neoplasm.yaml
 
 optimizer:
   _target_: torch.optim.Adam

@@ -1,8 +1,6 @@
 model:
-  _target_: src.modules.models.unet_model.UNet
-  n_channels: 3
-  n_classes: 2
-  bilinear: false
+  _target_: src.modules.models.unet34.Unet34
+  num_classes: 3
 
 loss:
   _target_: "torch.nn.CrossEntropyLoss"
@@ -10,8 +8,8 @@ loss:
 metrics:
   main:
     _target_: "torchmetrics.JaccardIndex"
-    task: "binary"
-    num_classes: 2
+    task: "multiclass"
+    num_classes: 3
     average: "macro"
   valid_best:
     _target_: "torchmetrics.MaxMetric"

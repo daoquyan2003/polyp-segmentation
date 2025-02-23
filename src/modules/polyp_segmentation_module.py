@@ -79,8 +79,8 @@ class PolypSegmentationLitModule(BaseLitModule):
         masks = masks.long()
         logits = self.forward(images)
         loss = self.loss(logits, masks)
-        probs = torch.sigmoid(logits)
-        preds = (probs > 0.5).long().squeeze(1)
+        softmax = nn.Softmax(dim=1)
+        preds = torch.argmax(softmax(logits), dim=1)
         return loss, preds, masks
 
     def on_train_start(self) -> None:
@@ -218,7 +218,7 @@ class PolypSegmentationLitModule(BaseLitModule):
     ) -> Any:
         images, masks = batch[0], batch[1]
         logits = self.forward(images)
-        probs = torch.sigmoid(logits)
-        preds = (probs > 0.5).long().squeeze(1)
+        softmax = nn.Softmax(dim=1)
+        preds = torch.argmax(softmax(logits), dim=1)
         outputs = {"logits": logits, "preds": preds, "targets": masks}
         return outputs
