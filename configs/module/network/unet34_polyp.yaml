@@ -1,0 +1,15 @@
+model:
+  _target_: src.modules.models.unet34.Unet34
+  num_classes: 2
+
+loss:
+  _target_: "torch.nn.CrossEntropyLoss"
+
+metrics:
+  main:
+    _target_: "torchmetrics.JaccardIndex"
+    task: "binary"
+    num_classes: 2
+    average: "macro"
+  valid_best:
+    _target_: "torchmetrics.MaxMetric"
