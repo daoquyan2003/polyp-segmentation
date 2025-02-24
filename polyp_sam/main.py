@@ -79,16 +79,16 @@ transform = ResizeLongestSide(sam.image_encoder.img_size)
 
 train_dataset = ColonDataset(X_train, y_train, sam.image_encoder.img_size)
 train_dataloader = DataLoader(
-    train_dataset, batch_size=2, shuffle=True, collate_fn=my_collate
+    train_dataset, batch_size=16, shuffle=True, collate_fn=my_collate
 )
 
 val_dataset = ColonDataset(X_test, y_test, sam.image_encoder.img_size)
 val_dataloader = DataLoader(
-    val_dataset, batch_size=2, shuffle=True, collate_fn=my_collate
+    val_dataset, batch_size=16, shuffle=True, collate_fn=my_collate
 )
 
 
-num_epochs = 2
+num_epochs = 200
 # Set up the optimizer, hyperparameter tuning will improve performance here
 lr = 4e-6
 wd = 1e-4
@@ -110,11 +110,11 @@ scheduler = LinearWarmupCosineAnnealingLR(
 
 # Freeze something
 
-for param in sam.prompt_encoder.parameters():
-    param.requires_grad = False
+# for param in sam.prompt_encoder.parameters():
+#     param.requires_grad = False
 
-for param in sam.image_encoder.parameters():
-    param.requires_grad = False
+# for param in sam.image_encoder.parameters():
+#     param.requires_grad = False
 
 root_dir = "./output/bkai-igh-neopolyp/SAM Finetune Enc Dec"
 
