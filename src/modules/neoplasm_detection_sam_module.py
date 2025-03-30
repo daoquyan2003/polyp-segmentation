@@ -11,7 +11,7 @@ from src.modules.losses import load_loss
 from src.modules.metrics import load_metrics
 
 
-class NeoplasmDetectionLitModule(BaseLitModule):
+class NeoplasmDetectionSAMLitModule(BaseLitModule):
     """
     A LightningModule organizes your PyTorch code into 6 sections:
         - Computations (init)
@@ -92,9 +92,35 @@ class NeoplasmDetectionLitModule(BaseLitModule):
         self.save_hyperparameters(logger=False)
 
     def model_step(self, batch: Any, *args: Any, **kwargs: Any) -> Any:
-        images, masks = batch[0], batch[1]
+        images, masks, bboxes = batch[0], batch[1], batch[2]
         masks = masks.long()
-        logits = self.forward(images)
+        list_logits = []
+        for i in range(len(images)):
+            image_embeddings = self.model.sam.image_encoder(
+                images[i].unsqueeze(0)
+            )
+            sparse_embeddings, dense_embeddings = (
+                self.model.sam.prompt_encoder(
+                    points=None,
+                    boxes=bboxes[i].unsqueeze(0),
+                    masks=None,
+                )
+            )
+            low_res_masks, iou_predictions = self.model.sam.mask_decoder(
+                image_embeddings=image_embeddings,
+                image_pe=self.model.sam.prompt_encoder.get_dense_pe(),
+                sparse_prompt_embeddings=sparse_embeddings,
+                dense_prompt_embeddings=dense_embeddings,
+                multimask_output=True,
+            )
+
+            logits = self.model.sam.postprocess_masks(
+                low_res_masks,
+                tuple(images.shape[-2:]),
+                tuple(masks.shape[-2:]),
+            )
+            list_logits.append(logits)
+        logits = torch.cat(list_logits, dim=0)
         loss = self.loss(logits, masks)
         softmax = nn.Softmax(dim=1)
         preds = torch.argmax(softmax(logits), dim=1)
@@ -293,9 +319,59 @@ class NeoplasmDetectionLitModule(BaseLitModule):
     def predict_step(
         self, batch: Any, batch_idx: int, dataloader_idx: int = 0
     ) -> Any:
-        images, masks = batch[0], batch[1]
-        logits = self.forward(images)
+        images, masks, bboxes = batch[0], batch[1], batch[2]
+        masks = masks.long()
+        list_logits = []
+        for i in range(len(images)):
+            image_embeddings = self.model.sam.image_encoder(
+                images[i].unsqueeze(0)
+            )
+            sparse_embeddings, dense_embeddings = (
+                self.model.sam.prompt_encoder(
+                    points=None,
+                    boxes=bboxes[i].unsqueeze(0),
+                    masks=None,
+                )
+            )
+            low_res_masks, iou_predictions = self.model.sam.mask_decoder(
+                image_embeddings=image_embeddings,
+                image_pe=self.model.sam.prompt_encoder.get_dense_pe(),
+                sparse_prompt_embeddings=sparse_embeddings,
+                dense_prompt_embeddings=dense_embeddings,
+                multimask_output=True,
+            )
+
+            logits = self.model.sam.postprocess_masks(
+                low_res_masks,
+                tuple(images.shape[-2:]),
+                tuple(masks.shape[-2:]),
+            )
+            list_logits.append(logits)
+        logits = torch.cat(list_logits, dim=0)
         softmax = nn.Softmax(dim=1)
         preds = torch.argmax(softmax(logits), dim=1)
         outputs = {"logits": logits, "preds": preds, "targets": masks}
         return outputs
+
+    def configure_optimizers(self) -> Any:
+        optimizer: torch.optim = hydra.utils.instantiate(
+            self.opt_params,
+            params=(
+                list(self.model.sam.mask_decoder.parameters())
+                + list(self.model.sam.image_encoder.parameters())
+                + list(self.model.sam.prompt_encoder.parameters())
+            ),
+            _convert_="partial",
+        )
+        if self.slr_params.get("scheduler"):
+            scheduler: torch.optim.lr_scheduler = hydra.utils.instantiate(
+                self.slr_params.scheduler,
+                optimizer=optimizer,
+                _convert_="partial",
+            )
+            lr_scheduler_dict = {"scheduler": scheduler}
+            if self.slr_params.get("extras"):
+                for key, value in self.slr_params.get("extras").items():
+                    lr_scheduler_dict[key] = value
+            return {"optimizer": optimizer, "lr_scheduler": lr_scheduler_dict}
+        return {"optimizer": optimizer}

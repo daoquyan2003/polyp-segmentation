@@ -64,3 +64,38 @@ def extract_bboxes(mask, num_instances):
         boxes[i] = np.array([y1, x1, y2, x2])
 
     return boxes.astype(np.int32)
+
+
+def extract_bboxes_xyxy(mask, num_instances):
+    """Compute bounding boxes from masks.
+
+    mask: [height, width, num_instances]. Mask pixels are either 1 or 0.
+
+    Returns: bbox array [num_instances, (x1, y1, x2, y2)].
+    """
+
+    boxes = np.zeros([num_instances, 4], dtype=np.int32)
+    processed_mask = np.zeros_like(mask)
+    processed_mask[mask > 0] = 1
+    for i in range(num_instances):
+        m = processed_mask
+
+        # Find bounding box coordinates
+        horizontal_indices = np.where(np.any(m, axis=0))[0]  # Get x-range
+        vertical_indices = np.where(np.any(m, axis=1))[0]  # Get y-range
+
+        if horizontal_indices.shape[0]:
+            x1, x2 = horizontal_indices[[0, -1]]
+            y1, y2 = vertical_indices[[0, -1]]
+
+            # Ensure x2, y2 are included in the bbox
+            x2 += 1
+            y2 += 1
+
+        else:
+            # No mask for this instance
+            x1, y1, x2, y2 = 0, 0, 0, 0
+
+        boxes[i] = np.array([x1, y1, x2, y2])
+
+    return boxes.astype(np.int32)

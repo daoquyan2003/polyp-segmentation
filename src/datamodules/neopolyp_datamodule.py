@@ -42,26 +42,31 @@ class NeoPolypDataModule(SingleDataModule):
                 self.cfg_datasets.get("data_dir"),
                 transforms=transforms_train,
                 task=self.cfg_datasets.get("task"),
+                is_train=True,
             )
 
             test_dataset = NeoPolypDataset(
                 self.cfg_datasets.get("data_dir"),
                 transforms=transforms_test,
                 task=self.cfg_datasets.get("task"),
+                is_train=False,
             )
 
             seed = self.cfg_datasets.get("seed")
-            self.train_set, _, _ = random_split(
-                dataset=train_dataset,
-                lengths=self.cfg_datasets.get("train_val_test_split"),
-                generator=torch.Generator().manual_seed(seed),
-            )
+            # self.train_set, _, _ = random_split(
+            #     dataset=train_dataset,
+            #     lengths=self.cfg_datasets.get("train_val_test_split"),
+            #     generator=torch.Generator().manual_seed(seed),
+            # )
+            self.train_set = train_dataset
 
-            _, self.valid_set, self.test_set = random_split(
-                dataset=test_dataset,
-                lengths=self.cfg_datasets.get("train_val_test_split"),
-                generator=torch.Generator().manual_seed(seed),
-            )
+            # _, self.valid_set, self.test_set = random_split(
+            #     dataset=test_dataset,
+            #     lengths=self.cfg_datasets.get("train_val_test_split"),
+            #     generator=torch.Generator().manual_seed(seed),
+            # )
+            self.valid_set = test_dataset
+            self.test_set = test_dataset
 
         # load predict dataset only if test set existed already
         if (stage == "predict") and self.test_set:

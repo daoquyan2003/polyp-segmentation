@@ -9,8 +9,12 @@ from typing import Any, Callable, Literal
 import cv2
 import numpy as np
 import torch
+from iterstrat.ml_stratifiers import MultilabelStratifiedShuffleSplit
 from PIL import Image
+from sklearn.model_selection import train_test_split
 from torch.utils.data import Dataset
+
+from .utils import extract_bboxes_xyxy
 
 with open("kaggle.json") as f:
     data = json.load(f)
@@ -30,6 +34,7 @@ class NeoPolypDataset(Dataset):
         task: Literal[
             "polyp-segmentation", "neoplasm-detection"
         ] = "polyp-segmentation",
+        is_train: bool = True,
     ) -> None:
         self.data_dir = data_dir
         self.transforms = transforms
@@ -39,8 +44,43 @@ class NeoPolypDataset(Dataset):
         image_dir = os.path.join(self.data_dir, "train", "train")
         mask_dir = os.path.join(self.data_dir, "train_gt", "train_gt")
 
-        self.image_paths = sorted(glob.glob(os.path.join(image_dir, "*.jpeg")))
-        self.mask_paths = sorted(glob.glob(os.path.join(mask_dir, "*.jpeg")))
+        image_paths = sorted(glob.glob(os.path.join(image_dir, "*.jpeg")))
+        mask_paths = sorted(glob.glob(os.path.join(mask_dir, "*.jpeg")))
+
+        if self.task == "neoplasm-detection":
+            masks = []
+            for mask_path in mask_paths:
+                masks.append(self._read_mask_(mask_path))
+
+            y = []
+            for mask in masks:
+                has_neoplasm = 1 if np.any(mask == 1) else 0
+                has_non_neoplasm = 1 if np.any(mask == 2) else 0
+                y.append([has_neoplasm, has_non_neoplasm])
+
+            del masks
+            y = np.array(y)
+
+            msss = MultilabelStratifiedShuffleSplit(
+                n_splits=1, test_size=0.2, random_state=42
+            )
+            train_idx, test_idx = next(msss.split(image_paths, y))
+
+            X_train = [image_paths[i] for i in train_idx]
+            X_test = [image_paths[i] for i in test_idx]
+            y_train = [mask_paths[i] for i in train_idx]
+            y_test = [mask_paths[i] for i in test_idx]
+        else:
+            X_train, X_test, y_train, y_test = train_test_split(
+                image_paths, mask_paths, test_size=0.2, random_state=42
+            )
+
+        if is_train:
+            self.image_paths = X_train
+            self.mask_paths = y_train
+        else:
+            self.image_paths = X_test
+            self.mask_paths = y_test
 
         assert len(self.image_paths) == len(
             self.mask_paths
@@ -101,7 +141,7 @@ class NeoPolypDataset(Dataset):
         mask = cv2.cvtColor(mask, cv2.COLOR_RGB2GRAY)
         processed_mask = np.zeros_like(mask)  # Default to 0
         if self.task == "polyp-segmentation":
-            processed_mask[mask > 0] = 1
+            processed_mask[mask >= 50] = 1
         else:
             processed_mask[(mask >= 50) & (mask <= 100)] = 1
             processed_mask[mask > 100] = 2
@@ -109,7 +149,7 @@ class NeoPolypDataset(Dataset):
         return processed_mask
 
     def _process_image_mask_(
-        self, image: np.ndarray, mask: np.ndarray
+        self, image: np.ndarray, mask: np.ndarray, bboxes: np.ndarray
     ) -> tuple[torch.Tensor, torch.Tensor]:
         """Process image and mask, including transforms, etc.
 
@@ -120,23 +160,39 @@ class NeoPolypDataset(Dataset):
         Returns:
             tuple[torch.Tensor, torch.Tensor]: Processed image and mask.
         """
+        dummy_labels = [0] * len(bboxes)
         if self.transforms:
-            result = self.transforms(image=image, mask=mask)
+            result = self.transforms(
+                image=image,
+                mask=mask,
+                bboxes=bboxes,
+                dummy_labels=dummy_labels,
+            )
             if isinstance(result["image"], np.ndarray):
                 if result["image"].ndim == 3 and result["image"].shape[2] == 3:
-                    return torch.from_numpy(result["image"]).permute(
-                        2, 0, 1
-                    ), torch.from_numpy(result["mask"]).to(torch.float32)
+                    return (
+                        torch.from_numpy(result["image"]).permute(2, 0, 1),
+                        torch.from_numpy(result["mask"]).to(torch.float32),
+                        torch.from_numpy(result["bboxes"]),
+                    )
                 else:
-                    return torch.from_numpy(result["image"]), torch.from_numpy(
-                        result["mask"]
-                    ).to(torch.float32)
+                    return (
+                        torch.from_numpy(result["image"]),
+                        torch.from_numpy(result["mask"]).to(torch.float32),
+                        torch.from_numpy(result["bboxes"]),
+                    )
             else:
-                return result["image"], result["mask"].to(torch.float32)
+                return (
+                    result["image"],
+                    result["mask"].to(torch.float32),
+                    result["bboxes"],
+                )
         else:
-            return torch.from_numpy(image).permute(2, 0, 1), torch.from_numpy(
-                mask
-            ).to(torch.float32)
+            return (
+                torch.from_numpy(image).permute(2, 0, 1),
+                torch.from_numpy(mask).to(torch.float32),
+                torch.from_numpy(bboxes),
+            )
 
     def __len__(self) -> int:
         return len(self.image_paths)
@@ -144,8 +200,11 @@ class NeoPolypDataset(Dataset):
     def __getitem__(self, index: int) -> tuple[torch.Tensor, torch.Tensor]:
         image = self._read_image_(self.image_paths[index])
         mask = self._read_mask_(self.mask_paths[index])
-        image_tensor, mask_tensor = self._process_image_mask_(image, mask)
-        return image_tensor, mask_tensor
+        bbox = extract_bboxes_xyxy(mask, 1)
+        image_tensor, mask_tensor, bbox_tensor = self._process_image_mask_(
+            image, mask, bbox
+        )
+        return image_tensor, mask_tensor, bbox_tensor
 
     def prepare_data(self) -> None:
         """Prepare the dataset by downloading and extracting files if not
@@ -191,7 +250,7 @@ class NeoPolypDataset(Dataset):
 
 if __name__ == "__main__":
     NeoPolypDataset("./data").prepare_data()
-    dataset = NeoPolypDataset("./data/")
-    img, mask = dataset[0]
-    print(img.shape, mask.shape)
-    print(type(img), type(mask))
+    dataset = NeoPolypDataset("./data/", task="neoplasm-detection")
+    img, mask, bbox = dataset[0]
+    print(img.shape, mask.shape, bbox.shape)
+    # print(type(img), type(mask))

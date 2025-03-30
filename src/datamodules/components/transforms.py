@@ -26,7 +26,12 @@ class TransformsWrapper:
                 transforms_cfg.get(augmentation_name), _convert_="object"
             )
             augmentations.append(augmentation)
-        self.augmentations = albumentations.Compose(augmentations)
+        self.augmentations = albumentations.Compose(
+            augmentations,
+            bbox_params=albumentations.BboxParams(
+                format="pascal_voc", label_fields=["dummy_labels"]
+            ),
+        )
 
     def __call__(
         self, image: Any, mask: Any | None = None, **kwargs: Any

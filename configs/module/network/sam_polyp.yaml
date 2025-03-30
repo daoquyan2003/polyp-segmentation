@@ -1,8 +1,7 @@
 model:
-  _target_: src.modules.models.unet_model.UNet
-  n_channels: 3
-  n_classes: 1
-  bilinear: false
+  _target_: src.modules.models.sam.SAM
+  model_type: "vit_b"
+  sam_checkpoint: ${paths.checkpoint_dir}/sam_vit_b_01ec64.pth
 
 loss:
   _target_: "monai.losses.DiceLoss"

@@ -1,9 +1,11 @@
 model:
-  _target_: src.modules.models.unet34.Unet34
-  num_classes: 3
+  _target_: src.modules.models.unet_versions.UNet_2Plus.UNet_2Plus
+  in_channels: 3
+  n_classes: 3
+  is_ds: false
 
 loss:
-  _target_: "monai.losses.GeneralizedDiceFocalLoss"
+  _target_: "monai.losses.GeneralizedDiceLoss"
   include_background: true
   to_onehot_y: true
   softmax: true

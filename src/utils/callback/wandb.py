@@ -64,49 +64,49 @@ class WandbCallback(Callback):
             ]
         )
 
-    def on_train_start(
-        self, trainer: "pl.Trainer", pl_module: "pl.LightningModule"
-    ):
-        wandb_logger = trainer.logger
-        wandb_logger.log_image(
-            key="Real Mask",
-            images=[
-                Image.fromarray(
-                    mask_overlay(self.sample_image, self.sample_mask)
-                )
-            ],
-        )
+    # def on_train_start(
+    #     self, trainer: "pl.Trainer", pl_module: "pl.LightningModule"
+    # ):
+    #     wandb_logger = trainer.logger
+    #     wandb_logger.log_image(
+    #         key="Real Mask",
+    #         images=[
+    #             Image.fromarray(
+    #                 mask_overlay(self.sample_image, self.sample_mask)
+    #             )
+    #         ],
+    #     )
 
-    def on_train_epoch_end(
-        self, trainer: "pl.Trainer", pl_module: "pl.LightningModule"
-    ):
-        transformed = self.transform(image=self.sample_image)
-        image = transformed["image"]  # (3, img_size, img_size)
-        image = image.unsqueeze(0).to(
-            trainer.model.device
-        )  # (1, 3, img_size, img_size)
+    # def on_train_epoch_end(
+    #     self, trainer: "pl.Trainer", pl_module: "pl.LightningModule"
+    # ):
+    #     transformed = self.transform(image=self.sample_image)
+    #     image = transformed["image"]  # (3, img_size, img_size)
+    #     image = image.unsqueeze(0).to(
+    #         trainer.model.device
+    #     )  # (1, 3, img_size, img_size)
 
-        pred_mask = trainer.model(image)
-        pred_mask = pred_mask.detach()  # (1, 3, img_size, img_size)
-        softmax = torch.nn.Softmax(dim=1)
-        pred_mask = torch.argmax(
-            softmax(pred_mask), dim=1
-        )  # (1, img_size, img_size)
-        pred_mask = pred_mask.permute(1, 2, 0)
-        pred_mask = pred_mask.cpu().numpy().astype(np.uint8)
-        pred_mask = cv2.resize(
-            pred_mask,
-            (self.sample_image_width, self.sample_image_height),
-            interpolation=cv2.INTER_CUBIC,
-        )
+    #     pred_mask = trainer.model(image)
+    #     pred_mask = pred_mask.detach()  # (1, 3, img_size, img_size)
+    #     softmax = torch.nn.Softmax(dim=1)
+    #     pred_mask = torch.argmax(
+    #         softmax(pred_mask), dim=1
+    #     )  # (1, img_size, img_size)
+    #     pred_mask = pred_mask.permute(1, 2, 0)
+    #     pred_mask = pred_mask.cpu().numpy().astype(np.uint8)
+    #     pred_mask = cv2.resize(
+    #         pred_mask,
+    #         (self.sample_image_width, self.sample_image_height),
+    #         interpolation=cv2.INTER_CUBIC,
+    #     )
 
-        wandb_logger = trainer.logger
-        wandb_logger.log_image(
-            key="predicted mask",
-            images=[
-                Image.fromarray(mask_overlay(self.sample_image, pred_mask))
-            ],
-        )
+    #     wandb_logger = trainer.logger
+    #     wandb_logger.log_image(
+    #         key="predicted mask",
+    #         images=[
+    #             Image.fromarray(mask_overlay(self.sample_image, pred_mask))
+    #         ],
+    #     )
 
     def on_validation_batch_end(
         self,
@@ -210,7 +210,7 @@ class WandbCallback(Callback):
 
         preds = outputs["preds"]
         targets = outputs["targets"]
-        images, ys = batch
+        images, ys = batch[0], batch[1]
 
         images = denormalize(images)
         for img, pred, target in zip(images, preds, targets):

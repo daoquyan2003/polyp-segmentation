@@ -1,0 +1,17 @@
+model:
+  _target_: src.modules.models.sam.SAM
+  model_type: "vit_b"
+  sam_checkpoint: ${paths.checkpoint_dir}/sam_vit_b_01ec64.pth
+
+loss:
+  _target_: "torch.nn.BCEWithLogitsLoss"
+  # _target_: src.modules.loss_functions.focal_loss.FocalLoss
+
+metrics:
+  main:
+    _target_: "torchmetrics.JaccardIndex"
+    task: "multiclass"
+    num_classes: 3
+    average: "macro"
+  valid_best:
+    _target_: "torchmetrics.MaxMetric"

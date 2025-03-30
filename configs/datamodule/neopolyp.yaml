@@ -10,6 +10,8 @@ transforms:
   train:
     order:
       [
+        "horizontal_flip",
+        "vertical_flip",
         "shift_scale_rotate",
         "rgb_shift",
         "random_brightness_contrast",
@@ -17,21 +19,27 @@ transforms:
         "normalize",
         "to_tensor",
       ]
+    horizontal_flip:
+      _target_: albumentations.HorizontalFlip
+      p: 0.3
+    vertical_flip:
+      _target_: albumentations.VerticalFlip
+      p: 0.3
     shift_scale_rotate:
       _target_: albumentations.ShiftScaleRotate
       shift_limit: 0.05
       scale_limit: 0.05
       rotate_limit: 15
-      p: 0.5
+      p: 0.3
     rgb_shift:
       _target_: albumentations.RGBShift
       r_shift_limit: 15
       g_shift_limit: 15
       b_shift_limit: 15
-      p: 0.5
+      p: 0.3
     random_brightness_contrast:
       _target_: albumentations.RandomBrightnessContrast
-      p: 0.5
+      p: 0.3
     resize:
       _target_: albumentations.Resize
       height: 512

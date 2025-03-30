@@ -1,9 +1,12 @@
 model:
   _target_: src.modules.models.unet34.Unet34
-  num_classes: 2
+  num_classes: 1
 
 loss:
-  _target_: "torch.nn.CrossEntropyLoss"
+  _target_: "monai.losses.DiceLoss"
+  include_background: true
+  to_onehot_y: true
+  sigmoid: true
 
 metrics:
   main:

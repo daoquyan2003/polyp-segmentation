@@ -1,6 +1,7 @@
 from operator import itemgetter
 from typing import Iterator, Optional
 
+import numpy as np
 from torch.utils.data import Dataset, Sampler
 from torch.utils.data.distributed import DistributedSampler
 
@@ -83,3 +84,38 @@ class DistributedSamplerWrapper(DistributedSampler):
         indexes_of_indexes = super().__iter__()
         sub_sampler_indexes = self.dataset
         return iter(itemgetter(*indexes_of_indexes)(sub_sampler_indexes))
+
+
+def extract_bboxes_xyxy(mask, num_instances):
+    """Compute bounding boxes from masks.
+
+    mask: [height, width, num_instances]. Mask pixels are either 1 or 0.
+
+    Returns: bbox array [num_instances, (x1, y1, x2, y2)].
+    """
+
+    boxes = np.zeros([num_instances, 4], dtype=np.int32)
+    processed_mask = np.zeros_like(mask)
+    processed_mask[mask > 0] = 1
+    for i in range(num_instances):
+        m = processed_mask
+
+        # Find bounding box coordinates
+        horizontal_indices = np.where(np.any(m, axis=0))[0]  # Get x-range
+        vertical_indices = np.where(np.any(m, axis=1))[0]  # Get y-range
+
+        if horizontal_indices.shape[0]:
+            x1, x2 = horizontal_indices[[0, -1]]
+            y1, y2 = vertical_indices[[0, -1]]
+
+            # Ensure x2, y2 are included in the bbox
+            x2 += 1
+            y2 += 1
+
+        else:
+            # No mask for this instance
+            x1, y1, x2, y2 = 0, 0, 0, 0
+
+        boxes[i] = np.array([x1, y1, x2, y2])
+
+    return boxes.astype(np.int32)
