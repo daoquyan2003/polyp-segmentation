@@ -1,8 +1,9 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from init_weights import init_weights
-from layers import unetConv2, unetUp
+
+from .init_weights import init_weights
+from .layers import unetConv2, unetUp
 
 
 class UNet(nn.Module):

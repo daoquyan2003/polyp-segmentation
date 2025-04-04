@@ -3,4 +3,4 @@ wandb_callback:
   image_path: ${paths.data_dir}/train/train/00d827b8bcf15050fb9af0ef92846b60.jpeg
   # data_path: ${paths.data_dir}
   img_size: 512
-  n_images_to_log: 5
+  n_images_to_log: 10

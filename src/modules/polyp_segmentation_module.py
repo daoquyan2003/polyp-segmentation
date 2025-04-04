@@ -63,9 +63,12 @@ class PolypSegmentationLitModule(BaseLitModule):
         self.test_metric = main_metric.clone()
         self.test_add_metrics = add_metrics.clone(postfix="/test")
 
-        self.train_dice = Dice(num_classes=2, average="macro")
-        self.val_dice = Dice(num_classes=2, average="macro")
-        self.test_dice = Dice(num_classes=2, average="macro")
+        # self.train_dice = Dice(num_classes=2, average="macro")
+        # self.val_dice = Dice(num_classes=2, average="macro")
+        # self.test_dice = Dice(num_classes=2, average="macro")
+        self.train_dice = Dice(multiclass=False)
+        self.val_dice = Dice(multiclass=False)
+        self.test_dice = Dice(multiclass=False)
         self.val_dice_best = valid_metric_best.clone()
 
         self.train_loss = MeanMetric()
@@ -76,7 +79,7 @@ class PolypSegmentationLitModule(BaseLitModule):
 
     def model_step(self, batch: Any, *args: Any, **kwargs: Any) -> Any:
         images, masks = batch[0], batch[1]
-        masks = masks.long()
+        # masks = masks.long()
         logits = self.forward(images)
         loss = self.loss(logits, masks.unsqueeze(1))
         preds_sigmoid = torch.sigmoid(logits)

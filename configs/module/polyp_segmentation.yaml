@@ -11,20 +11,20 @@ _target_: src.modules.polyp_segmentation_module.PolypSegmentationLitModule
 
 defaults:
   - _self_
-  - network: unet34_polyp.yaml
+  - network: unet_polyp.yaml
 
 optimizer:
   _target_: torch.optim.Adam
-  lr: 0.001
-  weight_decay: 0.0
+  lr: 0.0001
+  weight_decay: 0.00001
 
 scheduler:
   scheduler:
     _target_: torch.optim.lr_scheduler.ReduceLROnPlateau
     mode: "max"
-    factor: 0.1
+    factor: 0.2
     min_lr: 1.0e-9
-    patience: 10
+    patience: 8
     verbose: True
   extras:
     monitor: ${replace:"__metric__/valid"}
