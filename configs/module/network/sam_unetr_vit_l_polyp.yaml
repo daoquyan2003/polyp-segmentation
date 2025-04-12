@@ -1,0 +1,29 @@
+model:
+  _target_: src.modules.models.sam_unetr.sam_unetr.SAMUNETR
+  img_size: 256
+  in_channels: 3
+  out_channels: 1
+  feature_size: 16
+  embed_dim: 1024
+  encoder_depth: 24
+  encoder_num_heads: 16
+  encoder_global_attn_indexes: [5, 11, 17, 23]
+  pretrained_image_encoder_path: ${paths.checkpoint_dir}/sam_vit_l_image_encoder.pth
+  vit_type: "vit_l"
+  trainable_encoder: true
+  pretrained: true
+
+loss:
+  _target_: "torch.nn.BCEWithLogitsLoss"
+  # include_background: true
+  # to_onehot_y: false
+  # sigmoid: true
+
+metrics:
+  main:
+    _target_: "torchmetrics.JaccardIndex"
+    task: "binary"
+    num_classes: 2
+    average: "macro"
+  valid_best:
+    _target_: "torchmetrics.MaxMetric"

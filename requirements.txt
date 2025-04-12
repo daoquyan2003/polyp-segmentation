@@ -34,6 +34,7 @@ albumentations
 h5py
 
 # --------- models --------- #
+einops
 timm
 segmentation-models-pytorch
 monai
@@ -41,6 +42,7 @@ segment_anything
 
 # --------- visualization --------- #
 seaborn
+scikit-image
 scikit_learn
 matplotlib
 ipython
