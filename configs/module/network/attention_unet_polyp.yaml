@@ -1,10 +1,7 @@
 model:
-  _target_: segmentation_models_pytorch.Unet
-  in_channels: 3
-  classes: 1
-  encoder_name: 'efficientnet-b7'
-  decoder_attention_type: 'scse'
-  activation: null
+  _target_: src.modules.models.attention_unet.AttentionUNet
+  img_ch: 3
+  output_ch: 1
 
 loss:
   _target_: "monai.losses.DiceFocalLoss"

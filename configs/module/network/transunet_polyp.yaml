@@ -1,0 +1,25 @@
+model:
+  _target_: src.modules.models.transunet.transunet.TransUNet
+  img_dim: 256
+  in_channels: 3
+  out_channels: 128
+  head_num: 4
+  mlp_dim: 512
+  block_num: 8
+  patch_dim: 16
+  class_num: 1
+
+loss:
+  _target_: "torch.nn.BCEWithLogitsLoss"
+  # include_background: true
+  # to_onehot_y: false
+  # sigmoid: true
+
+metrics:
+  main:
+    _target_: "torchmetrics.JaccardIndex"
+    task: "binary"
+    num_classes: 2
+    average: "macro"
+  valid_best:
+    _target_: "torchmetrics.MaxMetric"

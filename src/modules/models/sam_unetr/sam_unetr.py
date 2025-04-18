@@ -8,7 +8,8 @@ import torch.nn.functional as F
 from monai.networks.blocks import MLPBlock as Mlp
 from monai.networks.blocks import UnetOutBlock, UnetrBasicBlock, UnetrUpBlock
 from monai.utils import ensure_tuple_rep
-from sam_image_encoder import ImageEncoderViT, LayerNorm2d, PatchEmbed
+
+from .sam_image_encoder import ImageEncoderViT, LayerNorm2d, PatchEmbed
 
 
 class SAMUNETR(nn.Module):

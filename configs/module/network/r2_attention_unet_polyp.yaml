@@ -1,0 +1,20 @@
+model:
+  _target_: src.modules.models.r2_attention_unet.R2AttU_Net
+  img_ch: 3
+  output_ch: 1
+  t: 2
+
+loss:
+  _target_: "torch.nn.BCEWithLogitsLoss"
+  # include_background: true
+  # to_onehot_y: false
+  # sigmoid: true
+
+metrics:
+  main:
+    _target_: "torchmetrics.JaccardIndex"
+    task: "binary"
+    num_classes: 2
+    average: "macro"
+  valid_best:
+    _target_: "torchmetrics.MaxMetric"

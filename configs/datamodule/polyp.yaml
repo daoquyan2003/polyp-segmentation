@@ -53,8 +53,8 @@ transforms:
       p: 0.4
     resize:
       _target_: albumentations.Resize
-      height: 512
-      width: 512
+      height: 256
+      width: 256
       p: 1.0
     normalize:
       _target_: albumentations.Normalize
@@ -69,8 +69,8 @@ transforms:
     order: ["resize", "normalize", "to_tensor"]
     resize:
       _target_: albumentations.Resize
-      height: 512
-      width: 512
+      height: 256
+      width: 256
       p: 1.0
     normalize:
       _target_: albumentations.Normalize
@@ -83,28 +83,28 @@ transforms:
 
 loaders:
   train:
-    batch_size: 12
+    batch_size: 16
     shuffle: True
     num_workers: 8
     drop_last: True
     pin_memory: False
 
   valid:
-    batch_size: 12
+    batch_size: 16
     shuffle: False
     num_workers: 8
     drop_last: False
     pin_memory: False
 
   test:
-    batch_size: 12
+    batch_size: 16
     shuffle: False
     num_workers: 8
     drop_last: False
     pin_memory: False
 
   predict:
-    batch_size: 12
+    batch_size: 16
     shuffle: False
     num_workers: 8
     drop_last: False
