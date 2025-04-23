@@ -2,13 +2,13 @@ model:
   _target_: src.modules.models.unet_versions.UNet_2Plus.UNet_2Plus
   in_channels: 3
   n_classes: 1
-  is_ds: false
+  is_ds: true
 
 loss:
-  _target_: "monai.losses.DiceLoss"
-  include_background: true
-  to_onehot_y: false
-  sigmoid: true
+  _target_: "torch.nn.BCEWithLogitsLoss"
+  # include_background: true
+  # to_onehot_y: false
+  # sigmoid: true
 
 metrics:
   main:

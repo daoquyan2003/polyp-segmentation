@@ -1,22 +1,23 @@
 model:
   _target_: src.modules.models.nnSAM.nnsam.SAMConvUNet
   input_channels: 3
-  n_stages: 5
-  features_per_stage: [32, 64, 128, 256, 512]
+  n_stages: 6
+  features_per_stage: [32, 64, 128, 256, 384, 512]
   kernel_sizes: 3
-  strides: [1, 2, 2, 2, 2]
-  n_conv_per_stage: [2, 2, 2, 2, 2]
+  strides: [1, 2, 2, 2, 2, 2]
+  n_conv_per_stage: [2, 2, 2, 2, 2, 2]
   num_classes: 1
-  n_conv_per_stage_decoder: [2, 2, 2, 2]
+  n_conv_per_stage_decoder: [2, 2, 2, 2, 2]
   conv_bias: false
   deep_supervision: false
   save_path: ${paths.checkpoint_dir}
 
 loss:
-  _target_: "torch.nn.BCEWithLogitsLoss"
+  _target_: src.modules.loss_functions.lovasz_loss.BCE_Lovasz
   # include_background: true
   # to_onehot_y: false
   # sigmoid: true
+  # lambda_gdl: 0.5
 
 metrics:
   main:

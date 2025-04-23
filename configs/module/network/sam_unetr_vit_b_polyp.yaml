@@ -1,6 +1,6 @@
 model:
   _target_: src.modules.models.sam_unetr.sam_unetr.SAMUNETR
-  img_size: 512
+  img_size: 384
   in_channels: 3
   out_channels: 1
   feature_size: 12
@@ -10,11 +10,11 @@ model:
   encoder_global_attn_indexes: [2, 5, 8, 11]
   pretrained_image_encoder_path: ${paths.checkpoint_dir}/sam_vit_b_image_encoder.pth
   vit_type: "vit_b"
-  trainable_encoder: false
+  trainable_encoder: true
   pretrained: true
 
 loss:
-  _target_: "monai.losses.DiceFocalLoss"
+  _target_: "monai.losses.GeneralizedDiceFocalLoss"
   include_background: true
   to_onehot_y: false
   sigmoid: true

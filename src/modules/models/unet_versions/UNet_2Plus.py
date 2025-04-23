@@ -125,6 +125,6 @@ class UNet_2Plus(nn.Module):
         final = (final_1 + final_2 + final_3 + final_4) / 4
 
         if self.is_ds:
-            return final_4, final
+            return final
         else:
             return final_4

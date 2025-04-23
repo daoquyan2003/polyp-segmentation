@@ -170,6 +170,7 @@ class SAMConvUNet(nn.Module):
         deep_supervision: bool = False,
         nonlin_first: bool = False,
         save_path: str = "checkpoints",
+        trainable_encoder: bool = True,
     ):
         """
         nonlin_first: if True you get conv -> nonlin -> norm. Else it's conv -> norm -> nonlin
@@ -237,8 +238,9 @@ class SAMConvUNet(nn.Module):
 
         self.sam_image_encoder = mobile_sam.image_encoder
 
-        for param in self.sam_image_encoder.parameters():
-            param.requires_grad = False
+        if not trainable_encoder:
+            for param in self.sam_image_encoder.parameters():
+                param.requires_grad = False
 
     def forward(self, x):
 
