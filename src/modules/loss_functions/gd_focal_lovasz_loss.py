@@ -25,6 +25,7 @@ class GeneralizedDiceFocalLovaszLoss(nn.Module):
         lambda_focal: float = 1.0,
         lambda_lovasz: float = 1.0,
     ):
+        super().__init__()
         self.generalized_dice_focal_loss = GeneralizedDiceFocalLoss(
             include_background=include_background,
             to_onehot_y=to_onehot_y,
