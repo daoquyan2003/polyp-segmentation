@@ -1,13 +1,13 @@
 model:
   _target_: src.modules.models.nnSAM.nnsam.SAMConvUNet
   input_channels: 3
-  n_stages: 6
-  features_per_stage: [32, 64, 128, 256, 384, 512]
+  n_stages: 7
+  features_per_stage: [32, 64, 128, 256, 384, 512, 768]
   kernel_sizes: 3
-  strides: [1, 2, 2, 2, 2, 2]
-  n_conv_per_stage: [2, 2, 2, 2, 2, 2]
+  strides: [1, 2, 2, 2, 2, 2, 2]
+  n_conv_per_stage: [2, 2, 2, 2, 2, 2, 2]
   num_classes: 1
-  n_conv_per_stage_decoder: [2, 2, 2, 2, 2]
+  n_conv_per_stage_decoder: [2, 2, 2, 2, 2, 2]
   conv_bias: false
   deep_supervision: false
   save_path: ${paths.checkpoint_dir}

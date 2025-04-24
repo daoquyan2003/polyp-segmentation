@@ -7,8 +7,8 @@
 from typing import Optional, Tuple, Type
 
 import torch
-from sam2.modeling.position_encoding import PositionEmbeddingRandom
-from sam2.modeling.sam2_utils import LayerNorm2d
+from sam2_custom.modeling.position_encoding import PositionEmbeddingRandom
+from sam2_custom.modeling.sam2_utils import LayerNorm2d
 from torch import nn
 
 

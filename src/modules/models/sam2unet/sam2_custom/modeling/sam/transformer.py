@@ -11,9 +11,12 @@ from typing import Tuple, Type
 
 import torch
 import torch.nn.functional as F
-from sam2.modeling.position_encoding import apply_rotary_enc, compute_axial_cis
-from sam2.modeling.sam2_utils import MLP
-from sam2.utils.misc import get_sdpa_settings
+from sam2_custom.modeling.position_encoding import (
+    apply_rotary_enc,
+    compute_axial_cis,
+)
+from sam2_custom.modeling.sam2_utils import MLP
+from sam2_custom.utils.misc import get_sdpa_settings
 from torch import Tensor, nn
 
 warnings.simplefilter(action="ignore", category=FutureWarning)

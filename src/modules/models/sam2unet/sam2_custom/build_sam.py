@@ -11,6 +11,8 @@ from hydra import compose
 from hydra.utils import instantiate
 from omegaconf import OmegaConf
 
+from .sam2_hiera_l import SAM2_HIERA_L
+
 
 def build_sam2(
     config_file,
@@ -87,3 +89,16 @@ def _load_checkpoint(model, ckpt_path):
             logging.error(unexpected_keys)
             raise RuntimeError()
         logging.info("Loaded checkpoint sucessfully")
+
+
+def build_sam2_l(
+    ckpt_path=None,
+    device="cuda",
+    mode="eval",
+):
+    model = SAM2_HIERA_L
+    _load_checkpoint(model, ckpt_path)
+    model = model.to(device)
+    if mode == "eval":
+        model.eval()
+    return model

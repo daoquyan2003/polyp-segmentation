@@ -10,7 +10,7 @@ from typing import Tuple
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from sam2.modeling.sam2_utils import DropPath, LayerNorm2d, get_clones
+from sam2_custom.modeling.sam2_utils import DropPath, LayerNorm2d, get_clones
 
 
 class MaskDownSampler(nn.Module):

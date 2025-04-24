@@ -9,9 +9,9 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 import torch
-from sam2.modeling.sam2_base import SAM2Base
-from sam2.sam2_image_predictor import SAM2ImagePredictor
-from sam2.utils.amg import (
+from sam2_custom.modeling.sam2_base import SAM2Base
+from sam2_custom.sam2_image_predictor import SAM2ImagePredictor
+from sam2_custom.utils.amg import (
     MaskData,
     area_from_rle,
     batch_iterator,

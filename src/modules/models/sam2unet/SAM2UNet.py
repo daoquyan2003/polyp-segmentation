@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from .sam2.build_sam import build_sam2
+from .sam2_custom.build_sam import build_sam2_l
 
 
 class DoubleConv(nn.Module):
@@ -162,11 +162,11 @@ class SAM2UNet(nn.Module):
         self, checkpoint_path=None, deep_supervision: bool = True
     ) -> None:
         super().__init__()
-        model_cfg = "sam2_hiera_l.yaml"
+        # model_cfg = "sam2_hiera_l.yaml"
         if checkpoint_path:
-            model = build_sam2(model_cfg, checkpoint_path)
+            model = build_sam2_l(checkpoint_path)
         else:
-            model = build_sam2(model_cfg)
+            model = build_sam2_l()
         del model.sam_mask_decoder
         del model.sam_prompt_encoder
         del model.memory_encoder

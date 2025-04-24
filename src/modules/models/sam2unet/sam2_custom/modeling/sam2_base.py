@@ -7,14 +7,14 @@
 import torch
 import torch.distributed
 import torch.nn.functional as F
-from sam2.modeling.sam2_utils import (
+from sam2_custom.modeling.sam2_utils import (
     MLP,
     get_1d_sine_pe,
     select_closest_cond_frames,
 )
-from sam2.modeling.sam.mask_decoder import MaskDecoder
-from sam2.modeling.sam.prompt_encoder import PromptEncoder
-from sam2.modeling.sam.transformer import TwoWayTransformer
+from sam2_custom.modeling.sam.mask_decoder import MaskDecoder
+from sam2_custom.modeling.sam.prompt_encoder import PromptEncoder
+from sam2_custom.modeling.sam.transformer import TwoWayTransformer
 from torch.nn.init import trunc_normal_
 
 # a large negative value as a placeholder score for missing objects

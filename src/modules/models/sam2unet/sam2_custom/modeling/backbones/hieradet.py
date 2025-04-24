@@ -10,12 +10,12 @@ from typing import List, Tuple, Union
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from sam2.modeling.backbones.utils import (
+from sam2_custom.modeling.backbones.utils import (
     PatchEmbed,
     window_partition,
     window_unpartition,
 )
-from sam2.modeling.sam2_utils import MLP, DropPath
+from sam2_custom.modeling.sam2_utils import MLP, DropPath
 
 
 def do_pool(

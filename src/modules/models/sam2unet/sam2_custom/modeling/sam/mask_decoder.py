@@ -7,7 +7,7 @@
 from typing import List, Optional, Tuple, Type
 
 import torch
-from sam2.modeling.sam2_utils import MLP, LayerNorm2d
+from sam2_custom.modeling.sam2_utils import MLP, LayerNorm2d
 from torch import nn
 
 
