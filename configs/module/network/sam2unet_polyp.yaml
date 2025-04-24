@@ -1,0 +1,19 @@
+model:
+  _target_: src.modules.models.sam2unet.SAM2UNet.SAM2UNet
+  deep_supervision: true
+  checkpoint_path: ${paths.checkpoint_dir}/sam2_hiera_large.pt
+
+loss:
+  _target_: src.modules.loss_functions.lovasz_loss.BCE_Lovasz
+  # include_background: true
+  # to_onehot_y: false
+  # sigmoid: true
+
+metrics:
+  main:
+    _target_: "torchmetrics.JaccardIndex"
+    task: "binary"
+    num_classes: 2
+    average: "macro"
+  valid_best:
+    _target_: "torchmetrics.MaxMetric"
