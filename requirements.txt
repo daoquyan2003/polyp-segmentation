@@ -37,6 +37,7 @@ h5py
 einops
 timm
 segmentation-models-pytorch
+ml_collections==1.1.0
 monai
 segment_anything
 dynamic-network-architectures==0.3.1
