@@ -479,7 +479,7 @@ class VisionTransformer(nn.Module):
                 int(img_size / vit_patch_size),
                 int(img_size / vit_patch_size),
             )
-        self.num_classes = num_classes
+        self.config.n_classes = num_classes
         self.zero_head = zero_head
         self.classifier = self.config.classifier
         self.transformer = Transformer(self.config, img_size, vis)
