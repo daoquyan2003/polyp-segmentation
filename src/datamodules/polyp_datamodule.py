@@ -5,6 +5,10 @@ from omegaconf import DictConfig
 from torch.utils.data import ConcatDataset
 
 from src.datamodules.components.cvc_clinicdb_dataset import CVCClinicDBDataset
+from src.datamodules.components.cvc_colondb_dataset import CVCColonDBDataset
+from src.datamodules.components.etis_larib_polypdb_dataset import (
+    ETISLaribPolypDBDataset,
+)
 from src.datamodules.components.kvasir_seg_dataset import KvasirSEGDataset
 from src.datamodules.components.neopolyp_dataset_v1 import NeoPolypDataset
 from src.datamodules.components.polypgen_dataset import PolypGenDataset
@@ -145,6 +149,16 @@ class PolypDataModule(SingleDataModule):
                     "train_val_test_split"
                 ),
                 mode="test",
+            )
+
+            cvc_colondb_dataset = CVCColonDBDataset(
+                self.cfg_datasets.get("data_dir"),
+                transforms=transforms_test,
+            )
+
+            etis_larib_dataset = ETISLaribPolypDBDataset(
+                self.cfg_datasets.get("data_dir"),
+                transforms=transforms_test,
             )
 
             seed = self.cfg_datasets.get("seed")

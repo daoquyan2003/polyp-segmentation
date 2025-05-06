@@ -2,15 +2,18 @@ model:
   _target_: segmentation_models_pytorch.Unet
   in_channels: 3
   classes: 1
-  encoder_name: 'mit_b5'
+  encoder_name: "tu-maxvit_large_tf_384"
+  decoder_use_batchnorm: true
+  decoder_channels: [1024, 512, 256, 128, 64]
   decoder_attention_type: 'scse'
   activation: null
 
 loss:
-  _target_: src.modules.loss_functions.lovasz_loss.BCE_Lovasz
-  # include_background: true
-  # to_onehot_y: false
-  # sigmoid: true
+  _target_: src.modules.loss_functions.gd_focal_lovasz_loss.GeneralizedDiceFocalLovaszLoss
+  include_background: true
+  to_onehot_y: false
+  sigmoid: true
+  lambda_gdl: 0.5
 
 metrics:
   main:

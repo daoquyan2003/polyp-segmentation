@@ -163,3 +163,7 @@ kaggle.json
 # Polyp-SAM
 /checkpoints/
 /output/
+
+# Weights
+*.ckpt
+*.pth

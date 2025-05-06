@@ -4,9 +4,9 @@ import albumentations as A
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
+from segmentation_models_pytorch import Unet
 
 from src.datamodules.components.neopolyp_dataset_v1 import NeoPolypDataset
-from src.modules.models.unet_versions.UNet import UNet
 from src.utils.polyp_utils import denormalize
 
 
@@ -35,13 +35,22 @@ dataset = NeoPolypDataset(
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
-weight_path = "..."
-model = UNet(in_channels=3, n_classes=1)
+weight_path = "..."  # Path to your model weights
+model = Unet(
+    encoder_name="tu-maxvit_large_tf_384",
+    encoder_weights=None,
+    in_channels=3,
+    classes=1,
+    decoder_attention_type="scse",
+    decoder_channels=[1024, 512, 256, 128, 64],
+    decoder_use_batchnorm=True,
+    activation=None,
+)
 model.load_state_dict(torch.load(weight_path))  # nosec
 model.to(device)
 model.eval()
 
-output_dir = "output/visualization/NeoPolyp"
+output_dir = "..."  # Path to save the output images
 os.makedirs(output_dir, exist_ok=True)
 
 for i in range(dataset.__len__()):
@@ -60,7 +69,7 @@ for i in range(dataset.__len__()):
 
     # Plot with transparent overlay
     fig, axes = plt.subplots(1, 2, figsize=(10, 5))
-    plt.suptitle(f"Image: {image_name}", fontsize=12)
+    # plt.suptitle(f"Image: {image_name}", fontsize=12)
 
     # Ground truth overlay
     axes[0].imshow(image)
@@ -82,3 +91,4 @@ for i in range(dataset.__len__()):
 
     plt.tight_layout()
     plt.savefig(save_path, bbox_inches="tight", dpi=100)
+    plt.close(fig)

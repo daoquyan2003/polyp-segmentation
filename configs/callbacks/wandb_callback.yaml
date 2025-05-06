@@ -1,6 +1,6 @@
 wandb_callback:
   _target_: src.utils.callback.wandb.WandbCallback
-  image_path: ${paths.data_dir}/train/train/00d827b8bcf15050fb9af0ef92846b60.jpeg
+  image_path: ${paths.data_dir}/bkai-igh-neopolyp/train/train/00d827b8bcf15050fb9af0ef92846b60.jpeg
   # data_path: ${paths.data_dir}
   img_size: 512
   n_images_to_log: 10
