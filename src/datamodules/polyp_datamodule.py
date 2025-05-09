@@ -151,9 +151,31 @@ class PolypDataModule(SingleDataModule):
                 mode="test",
             )
 
-            cvc_colondb_dataset = CVCColonDBDataset(
+            cvc_colondb_train_dataset = CVCColonDBDataset(
+                self.cfg_datasets.get("data_dir"),
+                transforms=transforms_train,
+                train_val_test_ratio=self.cfg_datasets.get(
+                    "train_val_test_split"
+                ),
+                mode="train",
+            )
+
+            cvc_colondb_val_dataset = CVCColonDBDataset(
                 self.cfg_datasets.get("data_dir"),
                 transforms=transforms_test,
+                train_val_test_ratio=self.cfg_datasets.get(
+                    "train_val_test_split"
+                ),
+                mode="val",
+            )
+
+            cvc_colondb_test_dataset = CVCColonDBDataset(
+                self.cfg_datasets.get("data_dir"),
+                transforms=transforms_test,
+                train_val_test_ratio=self.cfg_datasets.get(
+                    "train_val_test_split"
+                ),
+                mode="test",
             )
 
             etis_larib_dataset = ETISLaribPolypDBDataset(
@@ -168,6 +190,7 @@ class PolypDataModule(SingleDataModule):
                     kvasir_seg_train_dataset,
                     polypgen_train_dataset,
                     cvc_clinicdb_train_dataset,
+                    cvc_colondb_train_dataset,
                 ]
             )
             self.valid_set = ConcatDataset(
@@ -176,6 +199,7 @@ class PolypDataModule(SingleDataModule):
                     kvasir_seg_val_dataset,
                     polypgen_val_dataset,
                     cvc_clinicdb_val_dataset,
+                    cvc_colondb_val_dataset,
                 ]
             )
             self.test_set = ConcatDataset(
@@ -184,6 +208,7 @@ class PolypDataModule(SingleDataModule):
                     kvasir_seg_test_dataset,
                     polypgen_test_dataset,
                     cvc_clinicdb_test_dataset,
+                    cvc_colondb_test_dataset,
                 ]
             )
             print("Number of train samples:", len(self.train_set))
